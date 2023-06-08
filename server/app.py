@@ -9,7 +9,7 @@ from langchain.llms.openai import OpenAI
 import re
 
 #La clé de l'API OpenAI
-os.environ['OPENAI_API_KEY'] = "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"
+os.environ['OPENAI_API_KEY'] = "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"
 
 #la connexion à la base de données
 db = SQLDatabase.from_uri("mysql+pymysql://root:redaredaredareda@127.0.0.1/REDA")
