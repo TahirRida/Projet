@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      .charts-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-gap: 10px;
+      }
+      .chart {
+        width: 100%;
+        height: 300px;
+      }
+    </style>
+    <link rel="stylesheet" href="../static/styles/Style.css" />
+    <title>E-Quality</title>
+  </head>
+  <body>
+    <div class="header">
+      <h1>E-Quality Engineering</h1>
+    </div>
+    <div class="main-content">
+      <form action="." method="post">
+        <div class="asking-input">
+          <h2>Questionner votre base de données</h2>
+          <input
+            type="text"
+            placeholder="Entrez votre requête"
+            name="request"
+          />
+          <button type="submit" id="submit">Soumettre</button>
+        </div>
+      </form>
+    <div class="charts-container">
+      {% for percentage in pourcentages %}
+      <div class="chart-container">
+        <canvas class="chart" id="chart{{ loop.index }}"></canvas>
+      </div>
+      {% endfor %}
+    </div>
+  </body>
+  <script>
+    var percentages = {{ pourcentages | safe }};
+
+    // Create charts dynamically
+    var charts = [];
+
+    for (var i = 0; i < percentages.length; i++) {
+        var chartCanvas = document.getElementById('chart' + (i + 1)).getContext('2d');
+        var chart = new Chart(chartCanvas, {
+            type: 'pie',
+            data: {
+                labels: ['Pourcentage recherché', 'Rest'],
+                datasets: [{
+                    data: [percentages[i], 100 - percentages[i]],
+                    backgroundColor: ['#36a2eb', '#ebebeb']
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+
+        charts.push(chart);
+    }
+  </script>
+</html>
