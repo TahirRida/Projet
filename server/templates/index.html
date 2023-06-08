@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      .charts-container {
+      #charts-container {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         grid-gap: 10px;
@@ -20,52 +20,59 @@
     <title>E-Quality</title>
   </head>
   <body>
-    <div class="header">
-      <h1>E-Quality Engineering</h1>
-    </div>
-    <div class="main-content">
-      <form action="." method="post">
-        <div class="asking-input">
-          <h2>Questionner votre base de données</h2>
-          <input
-            type="text"
-            placeholder="Entrez votre requête"
-            name="request"
-          />
-          <button type="submit" id="submit">Soumettre</button>
-        </div>
-      </form>
-    <div class="charts-container">
-      {% for percentage in pourcentages %}
-      <div class="chart-container">
-        <canvas class="chart" id="chart{{ loop.index }}"></canvas>
+   <div class="header">
+    <h1>E-Quality Engineering</h1>
+  </div>
+  <div class="main-content">
+    <form action="." method="post">
+      <div class="asking-input">
+        <h2>Questionner votre base de données</h2>
+        <input type="text" placeholder="Entrez votre requête" name="request" />
+        <button type="submit" id="submit">Soumettre</button>
       </div>
-      {% endfor %}
-    </div>
-  </body>
+    </form>
+  </div>
+  <div id="charts-container"></div>
   <script>
-    var percentages = {{ pourcentages | safe }};
+    document.addEventListener('DOMContentLoaded', function() {
+      var chartsContainer = document.getElementById('charts-container');
 
-    // Create charts dynamically
-    var charts = [];
-
-    for (var i = 0; i < percentages.length; i++) {
-        var chartCanvas = document.getElementById('chart' + (i + 1)).getContext('2d');
-        var chart = new Chart(chartCanvas, {
-            type: 'pie',
-            data: {
-                labels: ['Pourcentage recherché', 'Rest'],
-                datasets: [{
-                    data: [percentages[i], 100 - percentages[i]],
-                    backgroundColor: ['#36a2eb', '#ebebeb']
-                }]
-            },
-            options: {
-                responsive: true
-            }
-        });
-
-        charts.push(chart);
+      function addChart(title,chartData) {
+        var chartContainer = document.createElement('div');
+        chartContainer.classList.add("chart")
+        var chartCanvas = document.createElement('canvas');
+        chartContainer.appendChild(chartCanvas);
+        chartsContainer.appendChild(chartContainer);
+        var chartTitle = document.createElement('h3');
+        chartTitle.textContent = title;
+        chartContainer.appendChild(chartTitle);
+        new Chart(chartCanvas.getContext('2d'), chartData);
       }
+
+      document.querySelector('form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var request = document.querySelector('input[name="request"]').value;
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/');
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            var response = JSON.parse(xhr.responseText);
+            var chartData = response.chartData;
+            var title = response.title;
+
+            if (chartData) {
+              addChart(title,chartData);
+            } else {
+              var responseDiv = document.createElement('div');
+              responseDiv.textContent = responseData;
+              chartsContainer.appendChild(responseDiv);
+            }
+          }
+        };
+        xhr.send('request=' + encodeURIComponent(request));
+      });
+    });
   </script>
 </html>

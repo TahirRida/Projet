@@ -9,7 +9,7 @@ from langchain.llms.openai import OpenAI
 import re
 
 #La clé de l'API OpenAI
-os.environ['OPENAI_API_KEY'] = "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"
+os.environ['OPENAI_API_KEY'] = "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"
 
 #la connexion à la base de données
 db = SQLDatabase.from_uri("mysql+pymysql://root:redaredaredareda@127.0.0.1/REDA")
@@ -35,6 +35,14 @@ def extract_number_from_string(string):
 
     # Return None if no number was found in the string
     return None
+
+def contains_percentage(string):
+    keywords = ["Pourcentage", "%"]
+    for keyword in keywords:
+        if keyword in string:
+            return True
+    return False
+
 serialized_percentages=[]
 pourcentages = []
 error=""
@@ -43,16 +51,27 @@ def home():
     return render_template('index.html',pourcentages=[],error="")
 @app.route('/',methods=['POST'])
 def getvalue():
-    global pourcentages
-    sql=request.form['request']
-    try:
+        sql = request.form['request']
         response = db_chain.run(sql)
-        pourcentages.append(extract_number_from_string(response));
-        serialized_percentages = json.dumps(pourcentages)
-        return render_template('index.html',pourcentages=serialized_percentages)
-    except :
-        serialized_percentages = json.dumps(pourcentages)
-        return render_template('index.html',pourcentages=serialized_percentages)
+        if contains_percentage(sql) or contains_percentage(response):
+            percentage = extract_number_from_string(response)
+            if percentage is not None:
+                chart_data = {
+                    'type': 'pie',
+                    'data': {
+                        'labels': ['Completed', 'Remaining'],
+                        'datasets': [{
+                            'data': [percentage, 100 - percentage],
+                            'backgroundColor': ['#36a2eb', '#ebebeb']
+                        }]
+                    },
+                    'options': {
+                        'responsive': True
+                    }
+                }
+            return jsonify({'chartData': chart_data, 'title': response})
+        return jsonify({'response': response})
+
 
 
 if __name__ == '__main__':
